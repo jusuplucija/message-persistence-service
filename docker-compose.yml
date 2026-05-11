@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    container_name: message_service_db
+    environment:
+      POSTGRES_DB: messages_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: message_service_app
+    environment:
+      API_TOKEN: ${API_TOKEN:?API_TOKEN is required}
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/messages_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
