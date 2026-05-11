@@ -80,8 +80,9 @@ Example:
 
 ```env
 API_TOKEN=your-secret-token
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/messages_db
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/messages_db
 ```
+When running through Docker Compose, the database host must be `db`, which is the name of the PostgreSQL service in the Compose network.
 
 ### 3. Start the application
 
@@ -89,7 +90,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/messages_db
 docker compose up --build
 ```
 
-The API will be available at:
+After the containers start, the API is available at:
 
 - `http://localhost:8000`
 - Swagger UI: `http://localhost:8000/docs`
@@ -135,9 +136,25 @@ Example request body:
 }
 ```
 
+**Success responses:**
+- `201 Created` – message was successfully persisted
+
+**Possible error responses:**
+- `401 Unauthorized` – invalid or missing Bearer token
+- `409 Conflict` – a message with the same `message_id` already exists
+- `422 Unprocessable Entity` – request body validation failed
+
+
 ### `GET /messages`
 
 Return all persisted messages.
+
+**Success responses:**
+- `200 OK` – messages retrieved successfully
+
+**Possible error responses:**
+- `401 Unauthorized` – invalid or missing Bearer token
+
 
 ### `PATCH /messages/{message_id}`
 
@@ -151,6 +168,15 @@ Example request body:
   "rating": false
 }
 ```
+
+**Success responses:**
+- `200 OK` – message was successfully updated
+
+**Possible error responses:**
+- `401 Unauthorized` – invalid or missing Bearer token
+- `404 Not Found` – message with the given `message_id` does not exist
+- `422 Unprocessable Entity` – request body or path parameter validation failed
+
 
 ## Design Decisions
 
