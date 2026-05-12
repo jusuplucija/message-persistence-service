@@ -172,6 +172,7 @@ Example request body:
 - `401 Unauthorized` - invalid or missing Bearer token
 - `409 Conflict` - a message with the same `message_id` already exists
 - `422 Unprocessable Entity` - request body validation failed
+- `500 Internal Server Error` – database operation failed.
 
 
 ### `GET /messages`
@@ -183,6 +184,7 @@ Return all persisted messages.
 
 **Possible error responses:**
 - `401 Unauthorized` - invalid or missing Bearer token
+- `500 Internal Server Error` – database operation failed.
 
 
 ### `PATCH /messages/{message_id}`
@@ -205,6 +207,7 @@ Example request body:
 - `401 Unauthorized` - invalid or missing Bearer token
 - `404 Not Found` - message with the given `message_id` does not exist
 - `422 Unprocessable Entity` - request body or path parameter validation failed
+- `500 Internal Server Error` – database operation failed.
 
 
 ## Implementation Notes
