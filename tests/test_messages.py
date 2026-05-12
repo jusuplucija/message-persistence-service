@@ -198,3 +198,33 @@ def test_create_message_with_invalid_token_returns_401(client):
     response = client.post("/messages", json=payload, headers=invalid_headers)
 
     assert response.status_code == 401
+
+
+def test_create_message_invalid_sent_at_returns_422(client):
+    payload = {
+        "message_id": "cc0e8400-e29b-41d4-a716-446655440000",
+        "chat_id": "823e4567-e89b-42d3-a456-426614174000",
+        "content": "Invalid sent_at test",
+        "rating": True,
+        "sent_at": "not-a-timestamp",
+        "role": "user",
+    }
+
+    response = client.post("/messages", json=payload, headers=auth_headers())
+
+    assert response.status_code == 422
+
+
+def test_create_message_invalid_role_returns_422(client):
+    payload = {
+        "message_id": "dd0e8400-e29b-41d4-a716-446655440000",
+        "chat_id": "923e4567-e89b-42d3-a456-426614174000",
+        "content": "Invalid role test",
+        "rating": True,
+        "sent_at": "2026-05-09T23:00:00Z",
+        "role": "assistant",
+    }
+
+    response = client.post("/messages", json=payload, headers=auth_headers())
+
+    assert response.status_code == 422

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import UUID4
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.security import verify_token
 from app.db.models import Message
@@ -17,22 +18,32 @@ router = APIRouter()
     dependencies=[Depends(verify_token)],
 )
 def create_message(message: MessageCreate, db: Session = Depends(get_db)):
-    existing_message = db.query(Message).filter(
-        Message.message_id == message.message_id
-    ).first()
+    try:
+        existing_message = db.query(Message).filter(
+            Message.message_id == message.message_id
+        ).first()
 
-    if existing_message:
+        if existing_message:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Message with this ID already exists",
+            )
+
+        db_message = Message(**message.model_dump())
+        db.add(db_message)
+        db.commit()
+        db.refresh(db_message)
+
+        return db_message
+
+    except HTTPException:
+        raise
+    except SQLAlchemyError:
+        db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Message with this ID already exists",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database operation failed",
         )
-
-    db_message = Message(**message.model_dump())
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
-
-    return db_message
 
 
 @router.get(
@@ -41,8 +52,14 @@ def create_message(message: MessageCreate, db: Session = Depends(get_db)):
     dependencies=[Depends(verify_token)],
 )
 def get_messages(db: Session = Depends(get_db)):
-    messages = db.query(Message).all()
-    return messages
+    try:
+        messages = db.query(Message).all()
+        return messages
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database operation failed",
+        )
 
 
 @router.patch(
@@ -55,22 +72,32 @@ def update_message(
     message_update: MessageUpdate,
     db: Session = Depends(get_db),
 ):
-    db_message = db.query(Message).filter(
-        Message.message_id == message_id
-    ).first()
+    try:
+        db_message = db.query(Message).filter(
+            Message.message_id == message_id
+        ).first()
 
-    if not db_message:
+        if not db_message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Message not found",
+            )
+
+        update_data = message_update.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
+            setattr(db_message, field, value)
+
+        db.commit()
+        db.refresh(db_message)
+
+        return db_message
+
+    except HTTPException:
+        raise
+    except SQLAlchemyError:
+        db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Message not found",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database operation failed",
         )
-
-    update_data = message_update.model_dump(exclude_unset=True)
-
-    for field, value in update_data.items():
-        setattr(db_message, field, value)
-
-    db.commit()
-    db.refresh(db_message)
-
-    return db_message
