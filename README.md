@@ -2,7 +2,7 @@
 
 A Python backend service for persisting AI assistant messages in a PostgreSQL database.
 
-This project was implemented as a solution for a Python Backend Engineer assignment. The service exposes a REST API, stores messages in Postgres, secures endpoints with Bearer token authentication, and can be started with Docker Compose.
+This project was implemented as a solution for a Python Backend Engineer assignment. The service exposes a REST API, stores messages in PostgreSQL, secures endpoints with Bearer token authentication, includes automated API tests, and can be started with Docker Compose.
 
 ## Tech Stack
 
@@ -21,6 +21,8 @@ This project was implemented as a solution for a Python Backend Engineer assignm
 - Bearer token authentication for protected endpoints
 - PostgreSQL persistence
 - Dockerized application setup
+- Automated API tests with pytest
+
 
 ## Message Schema
 
@@ -56,11 +58,16 @@ app/
     message.py
   main.py
 
+tests/
+  conftest.py
+  test_messages.py
+
 Dockerfile
 docker-compose.yml
 requirements.txt
 .env.example
 README.md
+pytest.ini
 ```
 
 ## Running the Project
@@ -95,7 +102,9 @@ After the containers start, the API is available at:
 - `http://localhost:8000`
 - Swagger UI: `http://localhost:8000/docs`
 
-The application and PostgreSQL database are started together with Docker Compose, as required by the assignment.
+The application and PostgreSQL database are started together with Docker Compose.
+
+- '`http://localhost:8000/health` - health check endpoint.
 
 
 ### 4. Stop the application
@@ -117,6 +126,26 @@ Authorization: Bearer your-secret-token
 
 In Swagger UI, click **Authorize** and enter the same token value that you placed in your `.env` file.
 
+
+## Running Tests
+
+The project includes automated API tests built with `pytest`.
+
+Run the tests from the project root with:
+
+```bash
+pytest -v
+```
+
+If needed, tests can also be started with:
+
+```bash
+python -m pytest -v
+```
+
+The tests use a separate test database to avoid interfering with application data.
+
+
 ## API Endpoints
 
 ### `POST /messages`
@@ -131,18 +160,18 @@ Example request body:
   "chat_id": "123e4567-e89b-42d3-a456-426614174000",
   "content": "Hello, this is a user message.",
   "rating": true,
-  "sent_at": "2026-05-09T15:00:00Z",
+  "sent_at": "2026-05-14T15:00:00Z",
   "role": "user"
 }
 ```
 
 **Success responses:**
-- `201 Created` – message was successfully persisted
+- `201 Created` - message was successfully persisted
 
 **Possible error responses:**
-- `401 Unauthorized` – invalid or missing Bearer token
-- `409 Conflict` – a message with the same `message_id` already exists
-- `422 Unprocessable Entity` – request body validation failed
+- `401 Unauthorized` - invalid or missing Bearer token
+- `409 Conflict` - a message with the same `message_id` already exists
+- `422 Unprocessable Entity` - request body validation failed
 
 
 ### `GET /messages`
@@ -150,10 +179,10 @@ Example request body:
 Return all persisted messages.
 
 **Success responses:**
-- `200 OK` – messages retrieved successfully
+- `200 OK` - messages retrieved successfully
 
 **Possible error responses:**
-- `401 Unauthorized` – invalid or missing Bearer token
+- `401 Unauthorized` - invalid or missing Bearer token
 
 
 ### `PATCH /messages/{message_id}`
@@ -170,50 +199,16 @@ Example request body:
 ```
 
 **Success responses:**
-- `200 OK` – message was successfully updated
+- `200 OK` - message was successfully updated
 
 **Possible error responses:**
-- `401 Unauthorized` – invalid or missing Bearer token
-- `404 Not Found` – message with the given `message_id` does not exist
-- `422 Unprocessable Entity` – request body or path parameter validation failed
+- `401 Unauthorized` - invalid or missing Bearer token
+- `404 Not Found` - message with the given `message_id` does not exist
+- `422 Unprocessable Entity` - request body or path parameter validation failed
 
 
-## Design Decisions
+## Implementation Notes
 
-### Why FastAPI
-FastAPI was chosen because it provides:
-- simple REST API development
-- automatic request validation with Pydantic
-- automatic OpenAPI/Swagger documentation
-- clean integration with dependency injection and SQLAlchemy
-
-### Why Bearer token authentication
-The assignment requires secured endpoints but does not prescribe a specific authentication mechanism. For this reason, a simple Bearer token approach was implemented as a lightweight and appropriate solution for the scope of the task.
-
-### Why PATCH for updates
-The update endpoint was implemented as `PATCH` because the service supports partial updates of existing messages. This better matches the actual behavior of the endpoint than a full resource replacement approach.
-
-## Notes
-
-- The application does not include a UI, as the assignment explicitly states that a UI is not required.
-- Django was not used, in accordance with the assignment constraints.
-
-
-## Future Improvements
-
-If extended further, the following could be added:
-- automated tests
-- Alembic database migrations
-- request logging
-- healthcheck endpoint improvements
-- filtering and pagination for `GET /messages`
-
-## Assignment Reference
-
-The implementation is based on the assignment requirements:
-- Python service
-- REST API
-- PostgreSQL integration
-- secured endpoints
-- Docker Compose support
-- public GitHub repository
+- FastAPI was chosen for quick REST API development, request validation, and built-in OpenAPI documentation.
+- Bearer token authentication was used as a simple way to secure endpoints for the scope of the assignment.
+- `PATCH` was used for the update endpoint because the implementation supports partial updates.
