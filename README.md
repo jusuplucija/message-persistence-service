@@ -83,13 +83,14 @@ cd <repo-folder>
 
 Copy `.env.example` to `.env` and provide your local values.
 
-Example:
+Example **for Docker Compose**:
 
 ```env
 API_TOKEN=your-secret-token
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/messages_db
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/messages_db
 ```
-When running through Docker Compose, the database host must be `db`, which is the name of the PostgreSQL service in the Compose network.
+
+When running the application with Docker Compose, the `DATABASE_URL` is overridden in `docker-compose.yml` to use the PostgreSQL service hostname `db`.
 
 
 ### 3. Start the application
@@ -114,48 +115,6 @@ To stop the running containers:
 ```bash
 docker compose down
 ```
-
-
-## Local Development Setup
-
-If you want to run the project locally without Docker, create a new virtual environment and install dependencies from `requirements.txt`.
-
-### 1. Create and activate a virtual environment
-
-On Windows CMD:
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
-
-On Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-### 2. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Create environment file
-
-Copy `.env.example` to `.env` and set the required values.
-
-### 4. Run the application
-
-```bash
-uvicorn app.main:app --reload
-```
-
-The API will then be available at:
-
-- `http://localhost:8000`
-- Swagger UI: `http://localhost:8000/docs`
 
 
 
