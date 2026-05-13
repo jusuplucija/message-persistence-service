@@ -81,9 +81,9 @@ cd <repo-folder>
 
 ### 2. Create environment file
 
-Copy `.env.example` to `.env` and provide your local values.
+Copy `.env.example` to `.env` and set your API token.
 
-Example **for Docker Compose**:
+Example:
 
 ```env
 API_TOKEN=your-secret-token
